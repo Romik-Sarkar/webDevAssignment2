@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Deals - Flights</title>
+    <link rel="stylesheet" href="mystyle.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Travel Deals</h1>
+            <div id="datetime"></div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="stays.html">Stays</a></li>
+                <li><a href="flights.html" class="active">Flights</a></li>
+                <li><a href="cars.html">Cars</a></li>
+                <li><a href="cruises.html">Cruises</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
+
+        <div class="content-wrapper">
+            <aside class="sidebar">
+                <h3>Settings</h3>
+                <div class="controls">
+                    <label for="fontSize">Font Size:</label>
+                    <select id="fontSize">
+                        <option value="14">Small</option>
+                        <option value="16" selected>Medium</option>
+                        <option value="18">Large</option>
+                        <option value="20">Extra Large</option>
+                    </select>
+
+                    <label for="bgColor">Background Color:</label>
+                    <input type="color" id="bgColor" value="#ffffff">
+                </div>
+            </aside>
+
+            <main id="mainContent">
+                <h2>Book Your Flight</h2>
+
+                <div class="trip-type">
+                    <label><input type="radio" name="tripType" value="oneway" checked> One Way</label>
+                    <label><input type="radio" name="tripType" value="roundtrip"> Round Trip</label>
+                </div>
+
+                <form id="flightForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="origin">Origin (TX or CA city): *</label>
+                            <input type="text" id="origin" name="origin" placeholder="e.g., Dallas, Austin">
+                            <span class="error" id="originError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="destination">Destination (TX or CA city): *</label>
+                            <input type="text" id="destination" name="destination" placeholder="e.g., Los Angeles, Houston">
+                            <span class="error" id="destinationError"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="departDate">Departure Date: *</label>
+                            <input type="date" id="departDate" name="departDate">
+                            <span class="error" id="departDateError"></span>
+                        </div>
+
+                        <div class="form-group" id="returnDateGroup" style="display: none;">
+                            <label for="returnDate">Return Date: *</label>
+                            <input type="date" id="returnDate" name="returnDate">
+                            <span class="error" id="returnDateError"></span>
+                        </div>
+                    </div>
+
+                    <div class="passenger-icon" id="passengerIcon" title="Click to enter passenger details">
+                        👥 Passengers
+                    </div>
+
+                    <div id="passengerForm" class="hidden">
+                        <h3>Passenger Details</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="adults">Adults: *</label>
+                                <input type="number" id="adults" name="adults" min="0" max="4" value="1">
+                                <span class="error" id="adultsError"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="children">Children: *</label>
+                                <input type="number" id="children" name="children" min="0" max="4" value="0">
+                                <span class="error" id="childrenError"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="infants">Infants: *</label>
+                                <input type="number" id="infants" name="infants" min="0" max="4" value="0">
+                                <span class="error" id="infantsError"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button type="submit">Search Flights</button>
+                        <button type="reset">Reset</button>
+                    </div>
+                </form>
+
+                <div class="result" id="resultDiv">
+                    <h3>Flight Search Results</h3>
+                    <div id="resultContent"></div>
+                </div>
+            </main>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Travel Deals. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Texas and California cities
+        const validCities = [
+            // Texas cities
+            'dallas', 'houston', 'austin', 'san antonio', 'fort worth', 'el paso',
+            'arlington', 'corpus christi', 'plano', 'laredo', 'lubbock', 'irving',
+            // California cities
+            'los angeles', 'san diego', 'san jose', 'san francisco', 'fresno',
+            'sacramento', 'long beach', 'oakland', 'bakersfield', 'anaheim',
+            'santa ana', 'riverside', 'stockton', 'irvine'
+        ];
+
+        // Create regex pattern for city validation (using regex as required by assignment)
+        const cityPattern = new RegExp(`^(${validCities.join('|')})$`, 'i');
+
+        // Display current date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('datetime').textContent = now.toLocaleDateString('en-US', options);
+        }
+        
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // Settings
+        document.getElementById('fontSize').addEventListener('change', function() {
+            document.getElementById('mainContent').style.fontSize = this.value + 'px';
+        });
+
+        document.getElementById('bgColor').addEventListener('change', function() {
+            document.getElementById('mainContent').style.backgroundColor = this.value;
+        });
+
+        // Trip type toggle
+        document.querySelectorAll('input[name="tripType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const returnDateGroup = document.getElementById('returnDateGroup');
+                if (this.value === 'roundtrip') {
+                    returnDateGroup.style.display = 'block';
+                } else {
+                    returnDateGroup.style.display = 'none';
+                }
+            });
+        });
+
+        // Passenger icon toggle
+        document.getElementById('passengerIcon').addEventListener('click', function() {
+            const passengerForm = document.getElementById('passengerForm');
+            passengerForm.classList.toggle('hidden');
+        });
+
+        // Helper function to validate date range
+        function isValidDateRange(dateStr) {
+            const date = new Date(dateStr);
+            const minDate = new Date('2024-09-01');
+            const maxDate = new Date('2024-12-01');
+            return date >= minDate && date <= maxDate;
+        }
+
+        // Form validation
+        document.getElementById('flightForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Clear previous errors
+            const errors = document.querySelectorAll('.error');
+            errors.forEach(error => {
+                error.textContent = '';
+                error.classList.remove('show');
+            });
+
+            let isValid = true;
+
+            // Get form values
+            const tripType = document.querySelector('input[name="tripType"]:checked').value;
+            const origin = document.getElementById('origin').value.trim();
+            const destination = document.getElementById('destination').value.trim();
+            const departDate = document.getElementById('departDate').value;
+            const returnDate = document.getElementById('returnDate').value;
+            const adults = parseInt(document.getElementById('adults').value);
+            const children = parseInt(document.getElementById('children').value);
+            const infants = parseInt(document.getElementById('infants').value);
+
+            // Validate origin (must be TX or CA city) - using regex
+            if (!origin) {
+                showError('originError', 'Origin is required');
+                isValid = false;
+            } else if (!cityPattern.test(origin.toLowerCase())) {
+                showError('originError', 'Origin must be a city in Texas or California');
+                isValid = false;
+            }
+
+            // Validate destination (must be TX or CA city) - using regex
+            if (!destination) {
+                showError('destinationError', 'Destination is required');
+                isValid = false;
+            } else if (!cityPattern.test(destination.toLowerCase())) {
+                showError('destinationError', 'Destination must be a city in Texas or California');
+                isValid = false;
+            }
+
+            // Validate departure date (Sep 1, 2024 to Dec 1, 2024) - using regex for format check
+            const dateRegex = /^2024-(09|10|11|12)-([0-2][0-9]|3[01])$/;
+            if (!departDate) {
+                showError('departDateError', 'Departure date is required');
+                isValid = false;
+            } else if (!dateRegex.test(departDate)) {
+                showError('departDateError', 'Departure date must be in 2024 between Sep-Dec');
+                isValid = false;
+            } else if (!isValidDateRange(departDate)) {
+                showError('departDateError', 'Departure date must be between Sep 1, 2024 and Dec 1, 2024');
+                isValid = false;
+            }
+
+            // Validate return date for round trip
+            if (tripType === 'roundtrip') {
+                if (!returnDate) {
+                    showError('returnDateError', 'Return date is required for round trip');
+                    isValid = false;
+                } else if (!dateRegex.test(returnDate)) {
+                    showError('returnDateError', 'Return date must be in 2024 between Sep-Dec');
+                    isValid = false;
+                } else if (!isValidDateRange(returnDate)) {
+                    showError('returnDateError', 'Return date must be between Sep 1, 2024 and Dec 1, 2024');
+                    isValid = false;
+                } else if (new Date(returnDate) <= new Date(departDate)) {
+                    showError('returnDateError', 'Return date must be after departure date');
+                    isValid = false;
+                }
+            }
+
+            // Validate passengers (max 4 per category)
+            if (adults > 4) {
+                showError('adultsError', 'Maximum 4 adults allowed');
+                isValid = false;
+            }
+            if (children > 4) {
+                showError('childrenError', 'Maximum 4 children allowed');
+                isValid = false;
+            }
+            if (infants > 4) {
+                showError('infantsError', 'Maximum 4 infants allowed');
+                isValid = false;
+            }
+
+            // If all validations pass, display results
+            if (isValid) {
+                displayResults(tripType, origin, destination, departDate, returnDate, adults, children, infants);
+            }
+        });
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+        }
+
+        function displayResults(tripType, origin, destination, departDate, returnDate, adults, children, infants) {
+            const resultDiv = document.getElementById('resultDiv');
+            const resultContent = document.getElementById('resultContent');
+            
+            let html = `
+                <p><strong>Trip Type:</strong> ${tripType === 'oneway' ? 'One Way' : 'Round Trip'}</p>
+                <p><strong>Origin:</strong> ${origin}</p>
+                <p><strong>Destination:</strong> ${destination}</p>
+                <p><strong>Departure Date:</strong> ${departDate}</p>
+            `;
+            
+            if (tripType === 'roundtrip' && returnDate) {
+                html += `<p><strong>Return Date:</strong> ${returnDate}</p>`;
+            }
+            
+            html += `
+                <p><strong>Passengers:</strong></p>
+                <ul>
+                    <li>Adults: ${adults}</li>
+                    <li>Children: ${children}</li>
+                    <li>Infants: ${infants}</li>
+                    <li>Total: ${adults + children + infants}</li>
+                </ul>
+                <p style="color: #27ae60; font-weight: bold;">Flight search complete! We'll show you the best available flights.</p>
+            `;
+            
+            resultContent.innerHTML = html;
+            resultDiv.classList.add('show');
+        }
+    </script>
+</body>
+</html>
